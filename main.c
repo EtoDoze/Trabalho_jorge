@@ -33,6 +33,7 @@ void exibirMenu(void)
     printf("3 - Matricular aluno em disciplina\n");
     printf("4 - Lancar ou atualizar nota\n");
     printf("5 - Listar boletim do aluno\n");
+    printf("6 - Listar disciplinas\n");
     printf("0 - Sair\n");
     printf("========================================\n");
     printf("Escolha uma opcao: ");
@@ -178,7 +179,16 @@ int main(void)
                 );
 
                 break;
+           case 6:
+               /*
+               * Exibe todas as disciplinas       cadastradas.
+               */
+              listarDisciplinas(
+                  disciplinas,
+                  qtdDisciplinas
+                );
 
+                 break;
             case 0:
                 /*
                  * Salva todos os dados antes de encerrar.
