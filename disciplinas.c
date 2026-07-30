@@ -275,3 +275,40 @@ void carregarDisciplinas(
 
     fclose(arquivo);
 }
+/*
+ * Lista todas as disciplinas cadastradas.
+ */
+void listarDisciplinas(
+    const Disciplina* disciplinas,
+    int qtdDisciplinas
+) {
+    printf("\n========================================\n");
+    printf("         LISTA DE DISCIPLINAS\n");
+    printf("========================================\n");
+
+    if (qtdDisciplinas == 0) {
+        printf("Nenhuma disciplina cadastrada.\n");
+        printf("========================================\n");
+        return;
+    }
+
+    printf("%-5s %-30s %-10s\n", "ID", "NOME", "CARGA");
+
+    int encontrou = 0;
+
+    for (int i = 0; i < qtdDisciplinas; i++) {
+        if (disciplinas[i].ativo) {
+            printf("%-5d %-30s %-10d\n",
+                   disciplinas[i].id,
+                   disciplinas[i].nome,
+                   disciplinas[i].cargaHoraria);
+            encontrou = 1;
+        }
+    }
+
+    if (!encontrou) {
+        printf("Nenhuma disciplina ativa cadastrada.\n");
+    }
+
+    printf("========================================\n");
+}
