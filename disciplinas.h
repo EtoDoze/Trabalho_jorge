@@ -15,5 +15,5 @@ void cadastrarDisciplina(Disciplina* disciplinas, int* qtdDisciplinas);
 void salvarDisciplinas(const Disciplina* disciplinas, int qtdDisciplinas);
 void carregarDisciplinas(Disciplina* disciplinas, int* qtdDisciplinas);
 int buscarDisciplinaPorId(const Disciplina* disciplinas, int qtdDisciplinas, int id);
-
+void listarDisciplinas(const Disciplina* disciplinas, int qtdDisciplinas);
 #endif // DISCIPLINAS_H
