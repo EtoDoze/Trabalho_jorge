@@ -292,7 +292,7 @@ void listarDisciplinas(
         return;
     }
 
-    printf("%-5s %-30s %-10s\n", "ID", "NOME", "CARGA");
+    printf("%-5s %-30s %-10s\n", "ID", "NOME", "CARGAHORÁRIA");
 
     int encontrou = 0;
 
