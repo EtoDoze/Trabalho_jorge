@@ -179,6 +179,7 @@ int main(void)
                 );
 
                 break;
+
            case 6:
                /*
                * Exibe todas as disciplinas       cadastradas.
@@ -189,6 +190,7 @@ int main(void)
                 );
 
                  break;
+
             case 0:
                 /*
                  * Salva todos os dados antes de encerrar.
