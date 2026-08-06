@@ -10,13 +10,16 @@
 #include "notas.h"
 #include "medias.h"
 
-// Conversão de UTF-8 (C string literals / buffers) para UTF-16 (Win32 Unicode API)
+// Conversão de UTF-8 ou ANSI (Windows-1252/CP850) para UTF-16 (Win32 Unicode API)
 static const wchar_t* Utf8ToWide(const char* utf8Str) {
     static wchar_t wbufs[8][1024];
     static int bufIdx = 0;
     if (!utf8Str) return L"";
     bufIdx = (bufIdx + 1) % 8;
-    MultiByteToWideChar(CP_UTF8, 0, utf8Str, -1, wbufs[bufIdx], 1024);
+    // Tenta converter como UTF-8 estrito; se contiver bytes ANSI não-UTF-8, faz fallback para CP_ACP
+    if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, utf8Str, -1, wbufs[bufIdx], 1024) == 0) {
+        MultiByteToWideChar(CP_ACP, 0, utf8Str, -1, wbufs[bufIdx], 1024);
+    }
     return wbufs[bufIdx];
 }
 

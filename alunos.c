@@ -3,6 +3,21 @@
 #include <string.h>
 #include "alunos.h"
 
+#ifdef _WIN32
+#include <windows.h>
+static void garantirUtf8(char* str, size_t maxLen) {
+    if (!str || str[0] == '\0') return;
+    wchar_t wbuf[1024];
+    if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, wbuf, 1024) == 0) {
+        if (MultiByteToWideChar(CP_ACP, 0, str, -1, wbuf, 1024) > 0) {
+            WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, str, (int)maxLen, NULL, NULL);
+        }
+    }
+}
+#else
+static void garantirUtf8(char* str, size_t maxLen) { (void)str; (void)maxLen; }
+#endif
+
 int buscarAlunoQualquerPorId(const Aluno* alunos, int qtdAlunos, int id) {
     for (int i = 0; i < qtdAlunos; i++) {
         if (alunos[i].id == id) {
@@ -64,6 +79,7 @@ int cadastrarAlunoDados(Aluno* alunos, int* qtdAlunos, int id, const char* nome,
     alunos[targetIdx].id = id;
     strncpy(alunos[targetIdx].nome, nome, sizeof(alunos[targetIdx].nome) - 1);
     alunos[targetIdx].nome[sizeof(alunos[targetIdx].nome) - 1] = '\0';
+    garantirUtf8(alunos[targetIdx].nome, sizeof(alunos[targetIdx].nome));
 
     size_t nlen = strlen(alunos[targetIdx].nome);
     while (nlen > 0 && (alunos[targetIdx].nome[nlen - 1] == '\n' || alunos[targetIdx].nome[nlen - 1] == '\r')) {
@@ -203,6 +219,7 @@ void carregarAlunos(Aluno* alunos, int* qtdAlunos) {
     }
 
     while (*qtdAlunos < MAX_ALUNOS && fread(&alunos[*qtdAlunos], sizeof(Aluno), 1, file) == 1) {
+        garantirUtf8(alunos[*qtdAlunos].nome, sizeof(alunos[*qtdAlunos].nome));
         (*qtdAlunos)++;
     }
 
