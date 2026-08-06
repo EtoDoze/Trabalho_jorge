@@ -23,9 +23,10 @@ int main(void) {
     assert(cadastrarAlunoDados(alunos, &qtdAlunos, 101, "Rennan Silva", msg) == 1);
     assert(cadastrarAlunoDados(alunos, &qtdAlunos, 102, "Roberto Souza", msg) == 1);
     assert(cadastrarDisciplinaDados(disciplinas, &qtdDisciplinas, 1, "Estrutura de Dados", 80, msg) == 1);
+    assert(cadastrarDisciplinaDados(disciplinas, &qtdDisciplinas, 2, "Programação Web e Lógica", 60, msg) == 1);
     assert(matricularAlunoDados(alunos, qtdAlunos, disciplinas, qtdDisciplinas, notas, 101, 1, msg) == 1);
     assert(lancarNotasDados(alunos, qtdAlunos, disciplinas, qtdDisciplinas, notas, 101, 1, 9.5f, msg) == 1);
-    printf("[PASS] Cadastro, Matricula e Lancamento de Nota OK.\n");
+    printf("[PASS] Cadastro com caracteres especiais ('%s'), Matricula e Lancamento de Nota OK.\n", disciplinas[1].nome);
 
     // Teste 2: Verificar Nome no Boletim
     BoletimAluno bol;

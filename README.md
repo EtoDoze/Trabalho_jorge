@@ -4,8 +4,7 @@
 
 Este repositório contém a implementação em **Linguagem C** de um **Sistema Acadêmico** para gerenciamento de alunos, disciplinas, matrículas e notas. 
 
-O objetivo deste `README.md` é orientar a equipe de desenvolvimento (**Roberto**, **Pedro**, **Rennan** e **Hávila**) e fornecer contexto estruturado para o uso de assistentes de IA / agentes de código (como o Mimo Code).
-
+O objetivo deste `README.md` é orientar a equipe de desenvolvimento (**Roberto**, **Pedro**, **Rennan** e **Hávila**).
 ---
 
 ## 1. Arquitetura Geral & Estruturas de Dados

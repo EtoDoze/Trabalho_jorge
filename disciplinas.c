@@ -4,6 +4,21 @@
 
 #include "disciplinas.h"
 
+#ifdef _WIN32
+#include <windows.h>
+static void garantirUtf8(char* str, size_t maxLen) {
+    if (!str || str[0] == '\0') return;
+    wchar_t wbuf[1024];
+    if (MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, str, -1, wbuf, 1024) == 0) {
+        if (MultiByteToWideChar(CP_ACP, 0, str, -1, wbuf, 1024) > 0) {
+            WideCharToMultiByte(CP_UTF8, 0, wbuf, -1, str, (int)maxLen, NULL, NULL);
+        }
+    }
+}
+#else
+static void garantirUtf8(char* str, size_t maxLen) { (void)str; (void)maxLen; }
+#endif
+
 /*
  * Procura uma disciplina pelo ID.
  *
@@ -79,6 +94,7 @@ int cadastrarDisciplinaDados(
     disciplinas[targetIdx].id = id;
     strncpy(disciplinas[targetIdx].nome, nome, sizeof(disciplinas[targetIdx].nome) - 1);
     disciplinas[targetIdx].nome[sizeof(disciplinas[targetIdx].nome) - 1] = '\0';
+    garantirUtf8(disciplinas[targetIdx].nome, sizeof(disciplinas[targetIdx].nome));
 
     size_t len = strlen(disciplinas[targetIdx].nome);
     while (len > 0 && (disciplinas[targetIdx].nome[len - 1] == '\n' || disciplinas[targetIdx].nome[len - 1] == '\r')) {
@@ -304,6 +320,10 @@ void carregarDisciplinas(
 
             *qtdDisciplinas = (int)quantidadeLida;
         }
+    }
+
+    for (int i = 0; i < *qtdDisciplinas; i++) {
+        garantirUtf8(disciplinas[i].nome, sizeof(disciplinas[i].nome));
     }
 
     fclose(arquivo);
