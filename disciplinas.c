@@ -11,7 +11,7 @@
  * - o índice da disciplina no vetor, caso seja encontrada;
  * - -1, caso não exista.
  */
-int buscarDisciplinaPorId(
+int buscarDisciplinaQualquerPorId(
     const Disciplina* disciplinas,
     int qtdDisciplinas,
     int id
@@ -21,9 +21,78 @@ int buscarDisciplinaPorId(
             return i;
         }
     }
+    return -1;
+}
+
+int buscarDisciplinaPorId(
+    const Disciplina* disciplinas,
+    int qtdDisciplinas,
+    int id
+) {
+    for (int i = 0; i < qtdDisciplinas; i++) {
+        if (disciplinas[i].ativo && disciplinas[i].id == id) {
+            return i;
+        }
+    }
 
     return -1;
 }
+
+int cadastrarDisciplinaDados(
+    Disciplina* disciplinas,
+    int* qtdDisciplinas,
+    int id,
+    const char* nome,
+    int cargaHoraria,
+    char* msgErro
+) {
+    if (id <= 0) {
+        if (msgErro) sprintf(msgErro, "Erro: O ID da disciplina deve ser positivo.");
+        return 0;
+    }
+    if (buscarDisciplinaPorId(disciplinas, *qtdDisciplinas, id) != -1) {
+        if (msgErro) sprintf(msgErro, "Erro: Ja existe uma disciplina ativa cadastrada com o ID %d.", id);
+        return 0;
+    }
+    if (nome == NULL || strlen(nome) == 0) {
+        if (msgErro) sprintf(msgErro, "Erro: O nome da disciplina nao pode ser vazio.");
+        return 0;
+    }
+    if (cargaHoraria <= 0) {
+        if (msgErro) sprintf(msgErro, "Erro: A carga horaria deve ser maior que zero.");
+        return 0;
+    }
+
+    int idxQualquer = buscarDisciplinaQualquerPorId(disciplinas, *qtdDisciplinas, id);
+    int targetIdx;
+    if (idxQualquer != -1) {
+        targetIdx = idxQualquer;
+    } else {
+        if (*qtdDisciplinas >= MAX_DISCIPLINAS) {
+            if (msgErro) sprintf(msgErro, "Erro: Limite maximo de disciplinas (%d) atingido.", MAX_DISCIPLINAS);
+            return 0;
+        }
+        targetIdx = (*qtdDisciplinas);
+        (*qtdDisciplinas)++;
+    }
+
+    disciplinas[targetIdx].id = id;
+    strncpy(disciplinas[targetIdx].nome, nome, sizeof(disciplinas[targetIdx].nome) - 1);
+    disciplinas[targetIdx].nome[sizeof(disciplinas[targetIdx].nome) - 1] = '\0';
+
+    size_t len = strlen(disciplinas[targetIdx].nome);
+    while (len > 0 && (disciplinas[targetIdx].nome[len - 1] == '\n' || disciplinas[targetIdx].nome[len - 1] == '\r')) {
+        disciplinas[targetIdx].nome[len - 1] = '\0';
+        len--;
+    }
+
+    disciplinas[targetIdx].cargaHoraria = cargaHoraria;
+    disciplinas[targetIdx].ativo = 1;
+
+    if (msgErro) sprintf(msgErro, "Disciplina '%s' (ID: %d, %dh) cadastrada com sucesso!", disciplinas[targetIdx].nome, id, cargaHoraria);
+    return 1;
+}
+
 
 /*
  * Cadastra uma nova disciplina no vetor.
@@ -34,12 +103,8 @@ void cadastrarDisciplina(
 ) {
     Disciplina novaDisciplina;
 
-    /*
-     * Verifica se o vetor já atingiu
-     * a quantidade máxima permitida.
-     */
     if (*qtdDisciplinas >= MAX_DISCIPLINAS) {
-        printf("\nLimite máximo de disciplinas atingido.\n");
+        printf("\nLimite maximo de disciplinas atingido.\n");
         return;
     }
 
@@ -47,107 +112,75 @@ void cadastrarDisciplina(
     printf("        CADASTRO DE DISCIPLINA\n");
     printf("========================================\n");
 
-    /*
-     * Solicita o ID da disciplina.
-     */
     printf("Digite o ID da disciplina: ");
-
     if (scanf("%d", &novaDisciplina.id) != 1) {
-        printf("\nID inválido.\n");
+        printf("\nID invalido.\n");
+        while (getchar() != '\n');
+        return;
+    }
+    while (getchar() != '\n');
 
-        while (getchar() != '\n') {
-        }
-
+    if (buscarDisciplinaPorId(disciplinas, *qtdDisciplinas, novaDisciplina.id) != -1) {
+        printf("\nJa existe uma disciplina com esse ID.\n");
         return;
     }
 
-    while (getchar() != '\n') {
-    }
-
-    /*
-     * Verifica se já existe uma disciplina
-     * com o mesmo ID.
-     */
-    if (
-        buscarDisciplinaPorId(
-            disciplinas,
-            *qtdDisciplinas,
-            novaDisciplina.id
-        ) != -1
-    ) {
-        printf("\nJá existe uma disciplina com esse ID.\n");
-        return;
-    }
-
-    /*
-     * Solicita o nome da disciplina.
-     */
     printf("Digite o nome da disciplina: ");
+    fgets(novaDisciplina.nome, sizeof(novaDisciplina.nome), stdin);
+    novaDisciplina.nome[strcspn(novaDisciplina.nome, "\n")] = '\0';
 
-    fgets(
-        novaDisciplina.nome,
-        sizeof(novaDisciplina.nome),
-        stdin
-    );
-
-    /*
-     * Remove o caractere de quebra de linha
-     * colocado pelo fgets.
-     */
-    novaDisciplina.nome[
-        strcspn(novaDisciplina.nome, "\n")
-    ] = '\0';
-
-    /*
-     * Verifica se o nome ficou vazio.
-     */
     if (strlen(novaDisciplina.nome) == 0) {
-        printf("\nO nome da disciplina não pode ficar vazio.\n");
+        printf("\nO nome da disciplina nao pode ficar vazio.\n");
         return;
     }
 
-    /*
-     * Solicita a carga horária.
-     */
-    printf("Digite a carga horária: ");
-
+    printf("Digite a carga horaria: ");
     if (scanf("%d", &novaDisciplina.cargaHoraria) != 1) {
-        printf("\nCarga horária inválida.\n");
-
-        while (getchar() != '\n') {
-        }
-
+        printf("\nCarga horaria invalida.\n");
+        while (getchar() != '\n');
         return;
     }
+    while (getchar() != '\n');
 
-    while (getchar() != '\n') {
+    char msg[256];
+    if (cadastrarDisciplinaDados(disciplinas, qtdDisciplinas, novaDisciplina.id, novaDisciplina.nome, novaDisciplina.cargaHoraria, msg)) {
+        printf("\n%s\n", msg);
+    } else {
+        printf("\n%s\n", msg);
     }
-
-    /*
-     * A carga horária deve ser maior que zero.
-     */
-    if (novaDisciplina.cargaHoraria <= 0) {
-        printf("\nA carga horária deve ser maior que zero.\n");
-        return;
-    }
-
-    /*
-     * A nova disciplina é cadastrada como ativa.
-     */
-    novaDisciplina.ativo = 1;
-
-    /*
-     * Adiciona a disciplina na próxima posição livre.
-     */
-    disciplinas[*qtdDisciplinas] = novaDisciplina;
-
-    /*
-     * Atualiza a quantidade de disciplinas cadastradas.
-     */
-    (*qtdDisciplinas)++;
-
-    printf("\nDisciplina cadastrada com sucesso.\n");
 }
+
+int removerDisciplinaDados(Disciplina* disciplinas, int qtdDisciplinas, int id, char* msgOut) {
+    int idx = buscarDisciplinaPorId(disciplinas, qtdDisciplinas, id);
+    if (idx == -1 || !disciplinas[idx].ativo) {
+        if (msgOut) sprintf(msgOut, "Erro: Disciplina com ID %d nao foi encontrada ou ja esta inativa.", id);
+        return 0;
+    }
+    disciplinas[idx].ativo = 0;
+    if (msgOut) sprintf(msgOut, "Sucesso: Disciplina '%s' (ID: %d) foi removida da memoria com sucesso!", disciplinas[idx].nome, id);
+    return 1;
+}
+
+void removerDisciplina(Disciplina* disciplinas, int qtdDisciplinas) {
+    if (qtdDisciplinas <= 0) {
+        printf("Erro: Nao ha disciplinas cadastradas no sistema.\n");
+        return;
+    }
+    int id;
+    printf("Digite o ID da disciplina que deseja remover: ");
+    if (scanf("%d", &id) != 1) {
+        printf("ID invalido.\n");
+        while (getchar() != '\n');
+        return;
+    }
+    while (getchar() != '\n');
+
+    char msg[256];
+    removerDisciplinaDados(disciplinas, qtdDisciplinas, id, msg);
+    printf("%s\n", msg);
+}
+
+
 
 /*
  * Salva as disciplinas em um arquivo binário.

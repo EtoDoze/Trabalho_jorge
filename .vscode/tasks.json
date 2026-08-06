@@ -2,14 +2,20 @@
     "tasks": [
         {
             "type": "cppbuild",
-            "label": "C/C++: gcc arquivo de build ativo",
-            "command": "/usr/bin/gcc",
+            "label": "C/C++: gcc build projeto completo",
+            "command": "gcc",
             "args": [
                 "-fdiagnostics-color=always",
-                "-g",
-                "${file}",
+                "-Wall",
+                "-Wextra",
+                "-g3",
+                "${fileDirname}/main.c",
+                "${fileDirname}/alunos.c",
+                "${fileDirname}/disciplinas.c",
+                "${fileDirname}/medias.c",
+                "${fileDirname}/notas.c",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "${fileDirname}/output/main.exe"
             ],
             "options": {
                 "cwd": "${fileDirname}"
@@ -21,7 +27,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "detail": "Tarefa gerada pelo Depurador."
+            "detail": "Compila todos os arquivos do projeto (main, alunos, disciplinas, medias, notas)."
         }
     ],
     "version": "2.0.0"

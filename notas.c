@@ -16,6 +16,40 @@ void inicializarNotas(float notas[MAX_ALUNOS][MAX_DISCIPLINAS]) {
     }
 }
 
+int matricularAlunoDados(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplinas, int qtdDisciplinas, float notas[MAX_ALUNOS][MAX_DISCIPLINAS], int idAluno, int idDisciplina, char* msgErro) {
+    if (qtdAlunos <= 0) {
+        if (msgErro) sprintf(msgErro, "Erro: Nao ha alunos cadastrados no sistema.");
+        return 0;
+    }
+    if (qtdDisciplinas <= 0) {
+        if (msgErro) sprintf(msgErro, "Erro: Nao ha disciplinas cadastradas no sistema.");
+        return 0;
+    }
+
+    int idxAluno = buscarAlunoPorId(alunos, qtdAlunos, idAluno);
+    if (idxAluno == -1 || !alunos[idxAluno].ativo) {
+        if (msgErro) sprintf(msgErro, "Erro: Aluno com ID %d nao foi encontrado ou esta inativo.", idAluno);
+        return 0;
+    }
+
+    int idxDisciplina = buscarDisciplinaPorId(disciplinas, qtdDisciplinas, idDisciplina);
+    if (idxDisciplina == -1 || !disciplinas[idxDisciplina].ativo) {
+        if (msgErro) sprintf(msgErro, "Erro: Disciplina com ID %d nao foi encontrada ou esta inativa.", idDisciplina);
+        return 0;
+    }
+
+    if (notas[idxAluno][idxDisciplina] != NOTA_NAO_MATRICULADO) {
+        if (msgErro) sprintf(msgErro, "Aviso: O aluno '%s' ja esta matriculado na disciplina '%s'.", alunos[idxAluno].nome, disciplinas[idxDisciplina].nome);
+        return 0;
+    }
+
+    notas[idxAluno][idxDisciplina] = 0.0f;
+    if (msgErro) sprintf(msgErro, "Sucesso: Aluno '%s' (ID: %d) matriculado na disciplina '%s' (ID: %d)!",
+                         alunos[idxAluno].nome, alunos[idxAluno].id,
+                         disciplinas[idxDisciplina].nome, disciplinas[idxDisciplina].id);
+    return 1;
+}
+
 void matricularAluno(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplinas, int qtdDisciplinas, float notas[MAX_ALUNOS][MAX_DISCIPLINAS]) {
     if (qtdAlunos <= 0) {
         printf("Erro: Nao ha alunos cadastrados no sistema.\n");
@@ -26,7 +60,7 @@ void matricularAluno(const Aluno* alunos, int qtdAlunos, const Disciplina* disci
         return;
     }
 
-    int idAluno;
+    int idAluno, idDisciplina;
     printf("Digite o ID do aluno para matricula: ");
     if (scanf("%d", &idAluno) != 1) {
         printf("Entrada invalida para o ID do aluno.\n");
@@ -35,13 +69,6 @@ void matricularAluno(const Aluno* alunos, int qtdAlunos, const Disciplina* disci
     }
     limparBufferStdin();
 
-    int idxAluno = buscarAlunoPorId(alunos, qtdAlunos, idAluno);
-    if (idxAluno == -1 || !alunos[idxAluno].ativo) {
-        printf("Erro: Aluno com ID %d nao foi encontrado ou esta inativo.\n", idAluno);
-        return;
-    }
-
-    int idDisciplina;
     printf("Digite o ID da disciplina para matricula: ");
     if (scanf("%d", &idDisciplina) != 1) {
         printf("Entrada invalida para o ID da disciplina.\n");
@@ -50,24 +77,44 @@ void matricularAluno(const Aluno* alunos, int qtdAlunos, const Disciplina* disci
     }
     limparBufferStdin();
 
+    char msg[256];
+    matricularAlunoDados(alunos, qtdAlunos, disciplinas, qtdDisciplinas, notas, idAluno, idDisciplina, msg);
+    printf("%s\n", msg);
+}
+
+int lancarNotasDados(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplinas, int qtdDisciplinas, float notas[MAX_ALUNOS][MAX_DISCIPLINAS], int idAluno, int idDisciplina, float nota, char* msgErro) {
+    if (qtdAlunos <= 0 || qtdDisciplinas <= 0) {
+        if (msgErro) sprintf(msgErro, "Erro: Nao ha alunos ou disciplinas cadastrados para lancamento de notas.");
+        return 0;
+    }
+
+    int idxAluno = buscarAlunoPorId(alunos, qtdAlunos, idAluno);
+    if (idxAluno == -1 || !alunos[idxAluno].ativo) {
+        if (msgErro) sprintf(msgErro, "Erro: Aluno com ID %d nao foi encontrado ou esta inativo.", idAluno);
+        return 0;
+    }
+
     int idxDisciplina = buscarDisciplinaPorId(disciplinas, qtdDisciplinas, idDisciplina);
     if (idxDisciplina == -1 || !disciplinas[idxDisciplina].ativo) {
-        printf("Erro: Disciplina com ID %d nao foi encontrada ou esta inativa.\n", idDisciplina);
-        return;
+        if (msgErro) sprintf(msgErro, "Erro: Disciplina com ID %d nao foi encontrada ou esta inativa.", idDisciplina);
+        return 0;
     }
 
-    // Verificar se já está matriculado
-    if (notas[idxAluno][idxDisciplina] != NOTA_NAO_MATRICULADO) {
-        printf("Aviso: O aluno '%s' ja esta matriculado na disciplina '%s'.\n", 
-               alunos[idxAluno].nome, disciplinas[idxDisciplina].nome);
-        return;
+    if (notas[idxAluno][idxDisciplina] == NOTA_NAO_MATRICULADO) {
+        if (msgErro) sprintf(msgErro, "Erro: O aluno '%s' NAO esta matriculado na disciplina '%s'. Faca a matricula primeiro.",
+                             alunos[idxAluno].nome, disciplinas[idxDisciplina].nome);
+        return 0;
     }
 
-    // Inicializa a nota com 0.0 ao matricular
-    notas[idxAluno][idxDisciplina] = 0.0f;
-    printf("Sucesso: Aluno '%s' (ID: %d) matriculado na disciplina '%s' (ID: %d)!\n",
-           alunos[idxAluno].nome, alunos[idxAluno].id,
-           disciplinas[idxDisciplina].nome, disciplinas[idxDisciplina].id);
+    if (nota < 0.0f || nota > 10.0f) {
+        if (msgErro) sprintf(msgErro, "Erro: A nota deve estar no intervalo entre 0.0 e 10.0.");
+        return 0;
+    }
+
+    notas[idxAluno][idxDisciplina] = nota;
+    if (msgErro) sprintf(msgErro, "Sucesso: Nota %.2f lancada para o aluno '%s' na disciplina '%s'!",
+                         nota, alunos[idxAluno].nome, disciplinas[idxDisciplina].nome);
+    return 1;
 }
 
 void lancarNotas(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplinas, int qtdDisciplinas, float notas[MAX_ALUNOS][MAX_DISCIPLINAS]) {
@@ -76,7 +123,7 @@ void lancarNotas(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplin
         return;
     }
 
-    int idAluno;
+    int idAluno, idDisciplina;
     printf("Digite o ID do aluno: ");
     if (scanf("%d", &idAluno) != 1) {
         printf("Entrada invalida para o ID do aluno.\n");
@@ -85,13 +132,6 @@ void lancarNotas(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplin
     }
     limparBufferStdin();
 
-    int idxAluno = buscarAlunoPorId(alunos, qtdAlunos, idAluno);
-    if (idxAluno == -1 || !alunos[idxAluno].ativo) {
-        printf("Erro: Aluno com ID %d nao foi encontrado ou esta inativo.\n", idAluno);
-        return;
-    }
-
-    int idDisciplina;
     printf("Digite o ID da disciplina: ");
     if (scanf("%d", &idDisciplina) != 1) {
         printf("Entrada invalida para o ID da disciplina.\n");
@@ -100,16 +140,12 @@ void lancarNotas(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplin
     }
     limparBufferStdin();
 
+    int idxAluno = buscarAlunoPorId(alunos, qtdAlunos, idAluno);
     int idxDisciplina = buscarDisciplinaPorId(disciplinas, qtdDisciplinas, idDisciplina);
-    if (idxDisciplina == -1 || !disciplinas[idxDisciplina].ativo) {
-        printf("Erro: Disciplina com ID %d nao foi encontrada ou esta inativa.\n", idDisciplina);
-        return;
-    }
-
-    // Verificar se o aluno está matriculado na disciplina
-    if (notas[idxAluno][idxDisciplina] == NOTA_NAO_MATRICULADO) {
-        printf("Erro: O aluno '%s' NAO esta matriculado na disciplina '%s'. Faca a matricula primeiro.\n",
-               alunos[idxAluno].nome, disciplinas[idxDisciplina].nome);
+    if (idxAluno == -1 || idxDisciplina == -1 || notas[idxAluno][idxDisciplina] == NOTA_NAO_MATRICULADO) {
+        char msg[256];
+        lancarNotasDados(alunos, qtdAlunos, disciplinas, qtdDisciplinas, notas, idAluno, idDisciplina, 0.0f, msg);
+        printf("%s\n", msg);
         return;
     }
 
@@ -131,10 +167,11 @@ void lancarNotas(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplin
         }
     }
 
-    notas[idxAluno][idxDisciplina] = nota;
-    printf("Sucesso: Nota %.2f lancada para o aluno '%s' na disciplina '%s'!\n",
-           nota, alunos[idxAluno].nome, disciplinas[idxDisciplina].nome);
+    char msg[256];
+    lancarNotasDados(alunos, qtdAlunos, disciplinas, qtdDisciplinas, notas, idAluno, idDisciplina, nota, msg);
+    printf("%s\n", msg);
 }
+
 
 void salvarNotas(const float notas[MAX_ALUNOS][MAX_DISCIPLINAS]) {
     FILE* file = fopen("notas.dat", "wb");

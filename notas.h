@@ -12,9 +12,11 @@ void inicializarNotas(float notas[MAX_ALUNOS][MAX_DISCIPLINAS]);
 
 // Realiza a matrícula de um aluno em uma disciplina (associação Aluno x Disciplina)
 void matricularAluno(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplinas, int qtdDisciplinas, float notas[MAX_ALUNOS][MAX_DISCIPLINAS]);
+int matricularAlunoDados(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplinas, int qtdDisciplinas, float notas[MAX_ALUNOS][MAX_DISCIPLINAS], int idAluno, int idDisciplina, char* msgErro);
 
 // Atribui ou atualiza a nota de um aluno em uma disciplina na qual está matriculado
 void lancarNotas(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplinas, int qtdDisciplinas, float notas[MAX_ALUNOS][MAX_DISCIPLINAS]);
+int lancarNotasDados(const Aluno* alunos, int qtdAlunos, const Disciplina* disciplinas, int qtdDisciplinas, float notas[MAX_ALUNOS][MAX_DISCIPLINAS], int idAluno, int idDisciplina, float nota, char* msgErro);
 
 // Salva a matriz 2D de notas no arquivo binário "notas.dat"
 void salvarNotas(const float notas[MAX_ALUNOS][MAX_DISCIPLINAS]);
@@ -23,3 +25,4 @@ void salvarNotas(const float notas[MAX_ALUNOS][MAX_DISCIPLINAS]);
 void carregarNotas(float notas[MAX_ALUNOS][MAX_DISCIPLINAS]);
 
 #endif // NOTAS_H
+

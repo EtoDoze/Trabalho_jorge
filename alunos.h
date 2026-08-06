@@ -10,8 +10,13 @@ typedef struct {
 } Aluno;
 
 void cadastrarAluno(Aluno* alunos, int* qtdAlunos);
+int cadastrarAlunoDados(Aluno* alunos, int* qtdAlunos, int id, const char* nome, char* msgErro);
+void removerAluno(Aluno* alunos, int qtdAlunos);
+int removerAlunoDados(Aluno* alunos, int qtdAlunos, int id, char* msgOut);
 void salvarAlunos(const Aluno* alunos, int qtdAlunos);
 void carregarAlunos(Aluno* alunos, int* qtdAlunos);
 int buscarAlunoPorId(const Aluno* alunos, int qtdAlunos, int id);
 
 #endif // ALUNOS_H
+
+

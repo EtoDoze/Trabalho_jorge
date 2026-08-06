@@ -46,6 +46,50 @@ float calcularMediaAluno(
     return soma / quantidadeNotas;
 }
 
+int gerarBoletimDados(
+
+    const Aluno* alunos,
+    int qtdAlunos,
+    const Disciplina* disciplinas,
+    int qtdDisciplinas,
+    const float notas[MAX_ALUNOS][MAX_DISCIPLINAS],
+    int idAluno,
+    BoletimAluno* boletim,
+    char* msgErro
+) {
+    if (boletim == NULL) return 0;
+    boletim->qtdItens = 0;
+
+    int idx = buscarAlunoPorId(alunos, qtdAlunos, idAluno);
+    if (idx == -1 || !alunos[idx].ativo) {
+        if (msgErro) sprintf(msgErro, "Erro: Aluno com ID %d nao foi encontrado ou esta inativo.", idAluno);
+        return 0;
+    }
+
+    boletim->idAluno = alunos[idx].id;
+    snprintf(boletim->nomeAluno, sizeof(boletim->nomeAluno), "%s", alunos[idx].nome);
+
+    for (int i = 0; i < qtdDisciplinas; i++) {
+        if (disciplinas[i].ativo && notas[idx][i] != NOTA_NAO_MATRICULADO) {
+            snprintf(boletim->itens[boletim->qtdItens].nomeDisciplina, sizeof(boletim->itens[boletim->qtdItens].nomeDisciplina), "%s", disciplinas[i].nome);
+            boletim->itens[boletim->qtdItens].nota = notas[idx][i];
+            boletim->qtdItens++;
+        }
+    }
+
+    if (boletim->qtdItens == 0) {
+        boletim->mediaGeral = 0.0f;
+        boletim->aprovado = 0;
+        if (msgErro) sprintf(msgErro, "Aviso: O aluno '%s' nao esta matriculado em nenhuma disciplina.", alunos[idx].nome);
+        return 1;
+    }
+
+    boletim->mediaGeral = calcularMediaAluno(idx, notas, qtdDisciplinas);
+    boletim->aprovado = (boletim->mediaGeral >= 7.0f) ? 1 : 0;
+    if (msgErro) sprintf(msgErro, "Boletim de '%s' gerado com sucesso.", alunos[idx].nome);
+    return 1;
+}
+
 /*
  * Função: listarBoletim
  * ----------------------------------------
@@ -62,106 +106,42 @@ void listarBoletim(
 ) {
     int idAluno;
 
-    // Solicita ao usuário o ID do aluno
     printf("\nDigite o ID do aluno: ");
-
-    // Valida a entrada
     if (scanf("%d", &idAluno) != 1) {
-
-        printf("\nID inválido!\n");
-
-        // Limpa o buffer do teclado
+        printf("\nID invalido!\n");
         while (getchar() != '\n');
+        return;
+    }
+    while (getchar() != '\n');
 
+    BoletimAluno boletim;
+    char msg[256];
+    if (!gerarBoletimDados(alunos, qtdAlunos, disciplinas, qtdDisciplinas, notas, idAluno, &boletim, msg)) {
+        printf("\n%s\n", msg);
         return;
     }
 
-    /*
-     * Procura o aluno pelo ID utilizando
-     * a função existente no módulo alunos.
-     */
-    int indiceAluno = buscarAlunoPorId(
-        alunos,
-        qtdAlunos,
-        idAluno
-    );
-
-    // Verifica se o aluno existe e está ativo
-    if (indiceAluno == -1 || alunos[indiceAluno].ativo == 0) {
-
-        printf("\nAluno não encontrado ou inativo.\n");
-
-        return;
-    }
-
-    // Cabeçalho do boletim
     printf("\n=============================================\n");
     printf("              BOLETIM DO ALUNO\n");
     printf("=============================================\n");
-
-    printf("ID: %d\n", alunos[indiceAluno].id);
-    printf("Nome: %s\n", alunos[indiceAluno].nome);
-
+    printf("ID: %d\n", boletim.idAluno);
+    printf("Nome: %s\n", boletim.nomeAluno);
     printf("---------------------------------------------\n");
     printf("%-25s %10s\n", "Disciplina", "Nota");
     printf("---------------------------------------------\n");
 
-    int quantidadeDisciplinas = 0;
-
-    /*
-     * Percorre todas as disciplinas procurando
-     * aquelas em que o aluno possui matrícula.
-     */
-    for (int i = 0; i < qtdDisciplinas; i++) {
-
-        if (
-            disciplinas[i].ativo == 1 &&
-            notas[indiceAluno][i] != NOTA_NAO_MATRICULADO
-        ) {
-
-            printf(
-                "%-25s %10.2f\n",
-                disciplinas[i].nome,
-                notas[indiceAluno][i]
-            );
-
-            quantidadeDisciplinas++;
-        }
-    }
-
-    // Caso o aluno não esteja matriculado em nenhuma disciplina
-    if (quantidadeDisciplinas == 0) {
-
-        printf("\nAluno não possui disciplinas matriculadas.\n");
+    if (boletim.qtdItens == 0) {
+        printf("\nAluno nao possui disciplinas matriculadas.\n");
         printf("=============================================\n");
-
         return;
     }
 
-    // Calcula a média geral do aluno
-    float media = calcularMediaAluno(
-        indiceAluno,
-        notas,
-        qtdDisciplinas
-    );
-
-    printf("---------------------------------------------\n");
-    printf("%-25s %10.2f\n", "Média Geral", media);
-
-    /*
-     * Exibe a situação do aluno.
-     * Neste projeto foi considerado:
-     * média maior ou igual a 7 = aprovado.
-     */
-    if (media >= 7.0f) {
-
-        printf("%-25s %10s\n", "Situação", "APROVADO");
-
-    } else {
-
-        printf("%-25s %10s\n", "Situação", "REPROVADO");
-
+    for (int i = 0; i < boletim.qtdItens; i++) {
+        printf("%-25s %10.2f\n", boletim.itens[i].nomeDisciplina, boletim.itens[i].nota);
     }
 
+    printf("---------------------------------------------\n");
+    printf("%-25s %10.2f\n", "Media Geral", boletim.mediaGeral);
+    printf("%-25s %10s\n", "Situacao", boletim.aprovado ? "APROVADO" : "REPROVADO");
     printf("=============================================\n");
-}
+}
